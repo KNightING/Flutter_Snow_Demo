@@ -40,7 +40,8 @@ class _DropSnowState extends State<DropSnow>
     return LayoutBuilder(builder: (context, size) {
       return CustomPaint(
         painter: DropSnowPainter(widget.count, _fraction),
-        size: Size(size.maxWidth, size.maxHeight),
+        size: Size(widget.size?.width ?? size.maxWidth,
+            widget?.size?.height ?? size.maxHeight),
       );
     });
   }
