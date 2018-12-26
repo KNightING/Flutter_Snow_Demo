@@ -105,7 +105,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             DropSnow(
               count: 200,
-              size: MediaQuery.of(context).size,
             ),
           ],
         ),

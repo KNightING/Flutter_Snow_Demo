@@ -5,8 +5,7 @@ class DropSnow extends StatefulWidget {
   final int count;
   final Size size;
 
-  DropSnow({Key key, @required this.count, @required this.size})
-      : super(key: key);
+  DropSnow({Key key, @required this.count, this.size}) : super(key: key);
 
   @override
   State<DropSnow> createState() => _DropSnowState();
@@ -38,34 +37,55 @@ class _DropSnowState extends State<DropSnow>
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: DropSnowPainter(widget.count, _fraction),
-      size: widget.size,
-    );
+    return LayoutBuilder(builder: (context, size) {
+      return CustomPaint(
+        painter: DropSnowPainter(widget.count, _fraction),
+        size: Size(size.maxWidth, size.maxHeight),
+      );
+    });
   }
 }
 
 typedef callback = void Function();
 
 class DropSnowPainter extends CustomPainter {
-  var snows = List<Snow>();
   final int _count;
   final double _fraction;
 
   DropSnowPainter(this._count, this._fraction);
 
+  var _snows = List<Snow>();
+  Size _recordSize;
+
   @override
   void paint(Canvas canvas, Size size) {
-    if (snows.length != _count) {
-      for (int i = 0; i < _count; i++) {
-        snows.add(Snow(size, 3));
+    var l = _snows.length;
+    if (l != _count) {
+      var snowSize = 3;
+
+      if (l > _count) {
+        for (int i = l; l > _count; l--) {
+          _snows.removeAt(i);
+        }
+      } else {
+        for (int i = l; i < _count; i++) {
+          _snows.add(Snow(size, snowSize));
+        }
+        _recordSize = size;
       }
+    }
+
+    if (size.width != _recordSize.width || size.height != _recordSize.height) {
+      for (var i in _snows) {
+        i.updateSize(size);
+      }
+      _recordSize = size;
     }
 
     // canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height),
     //     Paint()..color = Color(0xFF000000));
 
-    for (var i in snows) {
+    for (var i in _snows) {
       i.draw(canvas);
     }
   }
@@ -73,7 +93,8 @@ class DropSnowPainter extends CustomPainter {
   @override
   bool shouldRepaint(DropSnowPainter oldDelegate) {
     if (oldDelegate._fraction != this._fraction) {
-      this.snows = oldDelegate.snows;
+      this._snows = oldDelegate._snows;
+      this._recordSize = oldDelegate._recordSize;
       return true;
     }
     return false;
@@ -107,6 +128,18 @@ class Snow {
     paint = Paint()
       ..color = paintColor
       ..style = PaintingStyle.fill;
+  }
+
+  void updateSize(Size size) {
+    if (width != size.width) {
+      x = x * (size.width / width);
+      width = size.width;
+    }
+
+    if (height != size.height) {
+      y = y * (size.height / height);
+      height = size.height;
+    }
   }
 
   void draw(Canvas canvas) {
